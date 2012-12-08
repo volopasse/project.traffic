@@ -1,0 +1,15 @@
+Simulation parameters:
+Road_length:	1000.0
+T_step:	0.1
+Mean_velocity:	24.0
+Velocity_deviation:	6.0
+Output_type:	e	
+N_loops:	3000.0
+
+
+Output types:
+
+v - print velocity squared deviation
+p - print each car
+d - print density histograms
+e - print energy excess
