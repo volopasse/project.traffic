@@ -49,7 +49,7 @@ void *listPopEnd(List *list){
 	return node!=NULL ? listRemove(list, node) : NULL;
 }
 
-void listPushFront(List *list){
+void listPushFront(List *list, void *value){
 	ListNode *node=calloc(1,sizeof(ListNode));
 	assert(node!=NULL);
 

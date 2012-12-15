@@ -5,9 +5,10 @@
 #include <math.h>
 #include <time.h>
 
+#include "linkedlist.h"
+
 //temp declaration for max no of cars. 
 //later will be dynamic
-#define MAX_CARS	  	100
 #define SAFE_DIST_RATIO	2.7
 #define CAR_LENGTH		5
 #define N_BINS			20
@@ -23,19 +24,13 @@ typedef struct vehicle{
 
 //function declarations
 int Integrate();
-void IntegrateStep();
 int Initialize();
-
-void InitializeCars();
-
-int SortByPosAsc();
-int SortByPosDsc();
-void SortCarsByPos();
 
 //initialization
 vehicle *CreateCar(int ID);
 void DestroyCar(vehicle *car);
 void AddCar(vehicle *car);
+
 void CleanUpCars();
 
 //flow statistics
@@ -50,14 +45,7 @@ void PrintAllCars();
 
 //movement-related
 void MoveAllCars();
-void MoveCar(vehicle *car);
 void Move(float *,float *,float *);
-
-//neighbours
-void BuildNeighbourList();
-void CleanNeighbourList();
-void FindNeighbours();
-void FindLaneNeighbours(vehicle *car);
 
 //road statistics
 void DensityHist(int nBins, int *hist);
@@ -69,10 +57,7 @@ float EnergyMin();
 float RandBetween(int low, int high);
 
 //variable declarations
-vehicle *cars[MAX_CARS]; //TODO make a dynamic array
-int carSlotsActive=0;
 int maxID=-1;
-int nCars=0;
 
 //io-related
 char inputFileName[100]="Input.dat";
@@ -99,39 +84,12 @@ float pNewCar;
 
 int *hist;
 
+List *cars;
+
 //end of declrarations
 
 int main(int argc, char const *argv[])
 {
-	//process args
-
-	// if(argc!=2){
-	// 	printf("Invalid number or arguments. Function supports only one \n");
-	// 	return 0;
-	// } 
-		
-	// if (argv[1][0]=='-'){
-	// 	for (int i = 1; argv[1][i] !='\0' ; ++i){
-	// 		switch(argv[1][i]){
-	// 			case 'd':
-	// 				outHist=1;
-	// 				break;
-	// 			case 'e':
-	// 				outEnergy=1;
-	// 				break;
-	// 			case 'p':
-	// 				outCars=1;
-	// 				break;
-	// 			case 'v':
-	// 				outSS=1;
-	// 				break;
-	// 			default:
-	// 				printf("option -%c is invalid\n", argv[1][i]);
-	// 		}
-	// 	}
-		
-	// }
-
 
 	Initialize();
 	Integrate();
@@ -189,105 +147,12 @@ int Initialize(){
 
     fprintf(logFile, "Simulation started at %s\n", ctime(&now));
 
-	return 0;
 
-}
-
-//for debug purposes
-int IntegrateDebug(){
-	for (int i = 0; i < 5; ++i)
-	{
-		vehicle *newcar=CreateCar(maxID+1);
-		maxID++;
-		AddCar(newcar);	
-	}
-
-	printf("Number of Cars = %i\n", nCars);
-	printf("Car Slots Active = %i\n", carSlotsActive);
-
-	free(cars[0]);
-	cars[0]=NULL;
-	cars[1]->s=20;
-	cars[2]->s=10;
-	cars[3]->s=5;
-
-
-	for (int i = 0; i < carSlotsActive; ++i)
-	{	
-		if (cars[i]!=NULL)
-			printf(
-				"|%3i|%3.2f|%3.2f|%3.2f|%3.2f|%4.2f|\n", 
-				cars[i]->ID, cars[i]->s, cars[i]->v, 
-				cars[i]->a, cars[i]->d, cars[i]->vDesired);		
-		else
-			printf("Empty\n");
-	}
-
-	
-
-	BuildNeighbourList();
-
-	//steps sequence
-	for (int j = 0; j < nSteps; ++j){
-		printf("Step %i\n", j);
-		MoveAllCars();
-
-		for (int k = 0; k < carSlotsActive; ++k){	
-				if (cars[k]!=NULL)
-				printf(
-					"|%3i|%3.2f|%3.2f|%3.2f|%3.2f|%4.2f|\n", 
-					cars[k]->ID, cars[k]->s, cars[k]->v, 
-					cars[k]->a, cars[k]->d, cars[k]->vDesired);		
-				else
-					printf("Empty\n");
-			}
-	}
-
-	
-	vehicle *newcar=CreateCar(maxID+1);
-	maxID++;
-	AddCar(newcar);	
-	cars[3]->s=0.5;
-
-
-	printf("\n\n");
-
-	for (int i = 0; i < carSlotsActive; ++i)
-	{	
-		if (cars[i]!=NULL)
-			printf(
-				"|%3i|%3.2f|%3.2f|%3.2f|%3.2f|%4.2f|\n", 
-				cars[i]->ID, cars[i]->s, cars[i]->v, 
-				cars[i]->a, cars[i]->d, cars[i]->vDesired);		
-		else
-			printf("Empty\n");
-	}
-
-
-	BuildNeighbourList();
-
-	//steps sequence
-	for (int j = 0; j < nSteps; ++j){
-		printf("Step %i\n", j);
-		MoveAllCars();
-
-		for (int k = 0; k < carSlotsActive; ++k){	
-				if (cars[k]!=NULL)
-				printf(
-					"|%3i|%3.2f|%3.2f|%3.2f|%3.2f|%4.2f|\n", 
-					cars[k]->ID, cars[k]->s, cars[k]->v, 
-					cars[k]->a, cars[k]->d, cars[k]->vDesired);		
-				else
-					printf("Empty\n");
-			}
-	}
-
-
+    cars=listCreate();
 
 	return 0;
 
 }
-
 
 
 int Integrate(){
@@ -296,27 +161,21 @@ int Integrate(){
 	
 	for (int i = 0; i < nLoops; ++i){
 
-
-		CleanNeighbourList();
-		BuildNeighbourList();
-
-	
 		//steps sequence
 		for (int j = 0; j < nSteps; ++j){
 			MoveAllCars();
+			CleanUpCars();
 		}
 
-		if (RandBetween(0,1)<pNewCar && carSlotsActive<MAX_CARS){
+		if (RandBetween(0,1)<pNewCar){
 			vehicle *newcar=CreateCar(maxID+1);
 			maxID++;
 			AddCar(newcar);	
 
-			fprintf(logFile, "Car %i added on loop %i\n", newcar->ID, i);
+			// fprintf(logFile, "Car %i added on loop %i\n", newcar->ID, i);
 		}
 		
 		Output(i);
-
-		CleanUpCars();
 	}
 
 	return 0;
@@ -346,42 +205,8 @@ void DestroyCar(vehicle *car){
 
 void AddCar(vehicle *car){
 	assert(car!=NULL);
-	int i=0;
-	do{
-		if (cars[i]==NULL){
-			cars[i]=car;
-			return;
-		}
-		i++;
-	} while (i < carSlotsActive); //TODO <= or < ?? may introduce a bug
-	cars[carSlotsActive]=car;
-	carSlotsActive++;
-	nCars++;
-
-	/* 	HACK rerun neighbour list. Otherwise if car was recently dropped and 
-		replaced by another, the neighbour logic breaks */
-	BuildNeighbourList();
+	listPushFront(cars, car);
 }	
-
-//cleans up the empty slots in the middle of the array
-void CleanUpCars(){
-	for (int i = 0; i < carSlotsActive; ++i){
-		//trim and rerun
-		if (cars[carSlotsActive-1]==NULL){
-			carSlotsActive--;
-			i--;
-			continue;
-		}
-		//swap and continue
-		else if (cars[i]==NULL){
-			cars[i]=cars[carSlotsActive-1];
-			cars[carSlotsActive]=NULL;
-			carSlotsActive--;
-		}
-	}
-}
-
-
 
 
 //output function
@@ -413,118 +238,67 @@ void Output(int i){
 
 void PrintCar(vehicle *car){
 	assert(car!=NULL);
-	fprintf(out, 
+	fprintf(out,
 			"|%3i|%3.2f|%3.2f|%3.2f|%3.2f|%4.2f|\n", 
 			car->ID, car->s, car->v, 
 			car->a, car->d, car->vDesired);
 }
 
 void PrintAllCars(){
-	for (int i = 0; i < carSlotsActive; ++i)
-	{	
-		if (cars[i]!=NULL)
-			PrintCar(cars[i]);
-		else
-			fprintf(out,"Empty\n");
+
+	ListNode *_node=NULL;
+	ListNode *C=NULL;
+	vehicle *temp=NULL;
+	for(C=_node = cars->first; _node!=NULL; C=_node=_node->next){
+		temp=_node->value;
+		PrintCar(temp);
+
 	}
-}
 
-void BuildNeighbourList(){
-	for (int i = 0; i < carSlotsActive; ++i){
-		if (cars[i]!=NULL) FindLaneNeighbours(cars[i]);
-	}
-}
-
-void CleanNeighbourList(){
-	for (int i = 0; i < carSlotsActive; ++i){
-		for (int j = 0; j < 3; ++j){
-			for (int k = 0; k < 3; ++k){
-				cars[i]->neighbours[j][k]=NULL;
-			}
-		}
-	}
-}
-
-void FindNeighbours(){
-
-}
-
-void FindLaneNeighbours(vehicle *car){
-	float sDelta=roadLength;	//HACK starting deltas set to max value possible
-	float sFwdDelta=roadLength;
-	float sBckDelta=roadLength;
-	assert(car!=NULL);
-
-	for (int i = 0; i < carSlotsActive; ++i){
-		if (cars[i]==NULL) continue; //skip if the slot is empty
-		if (cars[i]==car) continue;  //skip if looking at self
-
-		sDelta=cars[i]->s - car->s;
-		if (sDelta>0){
-			if (sDelta<sFwdDelta){
-				sFwdDelta=sDelta;
-				car->neighbours[0][0]=cars[i];
-			}
-		} 
-		else if (sDelta<0){
-			if (abs(sDelta)<sBckDelta){
-				sBckDelta=abs(sDelta);
-				car->neighbours[0][2]=cars[i];
-			}
-		}
-	}
 }
 
 
 //Movement functions
 
 void MoveAllCars(){
-	for (int i = 0; i < carSlotsActive; ++i){
-		if (cars[i]!=NULL){ 
-			MoveCar(cars[i]);
-			if ((*cars[i]).s>roadLength) {
-				DestroyCar(cars[i]);
-				cars[i]=NULL;
-				nCars--;
-			}
-		}
-	}
-}
-
-void MoveCar(vehicle *car){
-	float aActual;
 	float vDelta;
-	vehicle *frontCar; //assigned for better readability
+	float aActual;
+	vehicle *car=NULL;
+	vehicle *frontCar=NULL;
 
-	assert(car!=NULL);
-	frontCar=car->neighbours[0][0];
+	LIST_FOREACH(cars, first, next, cur){
+		car=cur->value;
 
-	//separate checks to avoid memory error
-	if (frontCar==NULL)
-	{
-		vDelta=car->vDesired-car->v;
-		if (vDelta>0) 
-			aActual=car->a;
-		else if (vDelta<0) 
+		if (cur->next!=NULL) {
+			frontCar=cur->next->value;
+		} else {
+			frontCar=NULL;
+		}
+		
+		if (frontCar==NULL) {
+			vDelta=car->vDesired - car->v;
+			if (vDelta>0) 
+				aActual=car->a;
+			else if (vDelta<0) 
+				aActual=car->d;
+			else aActual=0;
+		} else if (frontCar->s - car->s > car->v/SAFE_DIST_RATIO) {
+			vDelta = car->vDesired - car->v;
+			if (vDelta>0) 
+				aActual=car->a;
+			else if (vDelta<0) 
+				aActual=car->d;
+			else aActual=0;
+		} else {
 			aActual=car->d;
-		else aActual=0;
-	}
-	else if (frontCar->s - car->s > car->v/SAFE_DIST_RATIO)
-	{
-		vDelta=(*car).vDesired-(*car).v;
-		if (vDelta>0) 
-			aActual=(*car).a;
-		else if (vDelta<0) 
-			aActual=(*car).d;
-		else aActual=0;
-	}
-	else{
-		aActual=(*car).d;
+		}
+		
+		Move(&(car->s), &(car->v), &aActual);
+		
 	}
 
-	Move(&(*car).s, &(*car).v, &aActual);
 
-	//accident check
+	// accident check
 	if (frontCar!=NULL){
 		if (car->s >= frontCar->s){
 			car->s=frontCar->s;
@@ -540,6 +314,17 @@ void Move(float *ps,float *pv,float *pa){
 	*ps=*ps + fmax(*pv * dt + 0.5 * (*pa) * pow(dt,2), 0);
 	*pv=fmax(*pv + *pa * dt ,0);
 }
+
+void CleanUpCars(){
+	vehicle *temp;
+	LIST_FOREACH(cars, first, next, cur){
+		temp=cur->value;
+		if (temp->s > roadLength) {
+			listPopEnd(cars);
+		}
+	}
+}
+
 
 //helper functions
 
@@ -592,24 +377,25 @@ void UseDefaults(){
 void DensityHist(int nBins, int *hist){
 	float binSize=roadLength/nBins;
 	int bin;
+	vehicle *temp;
 
-	for (int i = 0; i < carSlotsActive; ++i){	
-		if (cars[i]!=NULL){
-			bin=(int)(cars[i]->s / binSize);
-			hist[bin]++;
-		}
+	LIST_FOREACH(cars, first, next, cur){
+		temp=cur->value;
+		bin=(int)(temp->s / binSize);
+		hist[bin]++;
+		
 	}
 }
 
 
 float AvgSumOfSquares(){
 	float sumSquares=0;
-	for (int i = 0; i < carSlotsActive; ++i){	
-		if (cars[i]!=NULL){
-			sumSquares+=pow(cars[i]->vDesired - cars[i]->v, 2);
-		}
+	vehicle *temp;
+	LIST_FOREACH(cars, first, next, cur){
+		temp=cur->value;
+		sumSquares+=pow(temp->vDesired - temp->v, 2);
 	}
-	return nCars>0 ? sumSquares/nCars : 0;
+	return cars->count>0 ? sumSquares/cars->count : 0;
 }
 
 float EnergyRatio(){
@@ -619,57 +405,36 @@ float EnergyRatio(){
 
 float EnergyAct(){
 	float e =0;
-	if (nCars>1){
-		for (int  i = 0; i < carSlotsActive; ++i){
-			for (int j = i+1; j < carSlotsActive; ++j)	{
-				if (cars[i]!=NULL && cars[j]!=NULL){
-					e += 1 / pow(cars[i]->s - cars[j]->s,2) ;
-				}
-			}
+	ListNode *cur_i=NULL;
+	ListNode *cur_j=NULL;
+
+	vehicle *temp_i;
+	vehicle *temp_j;
+
+	for (cur_i = cars->first; cur_j!=NULL; cur_i=cur_i->next) {
+		temp_i=cur_i->value;
+		for (cur_j = cur_i->next; cur_j!=NULL; cur_j=cur_j->next) {
+				temp_j=cur_j->value;
+				e += 1 / pow(temp_i->s - temp_j->s,2) ;
 		}
 	}
-	else{
-		e=1;
-	}
 
-	return e;
+	return cars->count>1 ? e : 1;
 }
 
 
 float EnergyMin(){
 	float e =0;
 
-	if (nCars>1){
-		float slice=roadLength/(nCars-1);
-		for (int  i = 0; i < nCars; ++i){
-			for (int j = i+1; j < nCars; ++j)	{
+	float slice=roadLength/(cars->count - 1);
+
+	if (cars->count>1) {
+		for (int  i = 0; i < cars->count; ++i) {
+			for (int j = i+1; j < cars->count; ++j)	{
 				e += 1 / pow(slice*(i-j),2) ;
 			}
 		}
 	}
-	else{
-		e=1;
-	}
-
-	return e;
+	
+	return cars->count>1 ? e : 1;
 }
-
-
-
-int SortByPosAsc(const void *a,const void *b){
-	vehicle **pa=(vehicle **)a;
-	vehicle **pb=(vehicle **)b;
-	return (int)((*pa)->s - (*pb)->s);
-}
-
-int SortByPosDsc(const void *a,const void *b){
-	vehicle **pa=(vehicle **)a;
-	vehicle **pb=(vehicle **)b;
-	return (int)((*pb)->s - (*pa)->s);
-}
-
-void SortCarsByPos(){
-	//printf("Sorting Cars by Position...\n");
-	qsort(cars,carSlotsActive,sizeof(vehicle*),SortByPosDsc);
-}
-
