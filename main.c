@@ -619,9 +619,7 @@ float EnergyRatio(){
 
 float EnergyAct(){
 	float e =0;
-
 	if (nCars>1){
-		float slice=roadLength/(nCars-1);
 		for (int  i = 0; i < carSlotsActive; ++i){
 			for (int j = i+1; j < carSlotsActive; ++j)	{
 				if (cars[i]!=NULL && cars[j]!=NULL){
