@@ -41,6 +41,8 @@ float AvgSumOfSquares();
 
 //output-related
 void ReadInputFile();
+int ProcessArgs(int count, char const *args[]);
+void PrintParameters();
 void UseDefaults();
 void Output(int);
 void PrintCar(vehicle *car);

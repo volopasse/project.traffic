@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -11,6 +12,8 @@
 int main(int argc, char const *argv[])
 {
 
+	ProcessArgs(argc, argv);
+
 	Initialize();
 	Integrate();
 
@@ -19,7 +22,21 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-int Initialize(){
+int ProcessArgs(int count, char const *args[]) {
+	for (int i = 1; i < count; ++i)
+	{
+		if (strcmp(args[i],"-i")==0) {
+			strcpy(inputFileName,args[i+1]);
+			i++;
+			continue;
+		} 
+	}
+
+	return 0;
+}
+
+
+int Initialize() {
 	//default parameters
 
 
@@ -27,15 +44,8 @@ int Initialize(){
 	char ex='n';
 	
 	ReadInputFile();
+	PrintParameters();
 	
-	printf("Road length:\t%4.1f\n", roadLength);
-    printf("Time step:\t%4.1f\n", dt);
-    printf("Steps:\t%4i\n", nSteps);
-    printf("Loops:\t%4i\n", nLoops);
-    printf("Mean velocity:\t%4.1f\n", meanVelocity);
-    printf("Velocity deviation:\t%4.1f\n", devVelocity);
-    printf("Output type:\t%c\n", outSwitch);
-    printf("New Car Probability:\t %.1f%%\n", pNewCar*100);
 	
 	printf("Do you wish to run the sumilation with these parameters? (y/n):");
 	scanf("%c", &ex);
@@ -256,7 +266,7 @@ float RandBetween(int low, int high){
 void ReadInputFile(){
 	char tempLine[100];
 
-	printf("Loading parameters...\n");
+	printf("Loading parameters from %s ...\n", inputFileName);
 
 	in = fopen(inputFileName, "r");
 	if (!in)
@@ -280,7 +290,18 @@ void ReadInputFile(){
 	fclose(in);
 }
 
-void UseDefaults(){
+void PrintParameters() {
+	printf("Road length:\t%4.1f\n", roadLength);
+    printf("Time step:\t%4.1f\n", dt);
+    printf("Steps:\t%4i\n", nSteps);
+    printf("Loops:\t%4i\n", nLoops);
+    printf("Mean velocity:\t%4.1f\n", meanVelocity);
+    printf("Velocity deviation:\t%4.1f\n", devVelocity);
+    printf("Output type:\t%c\n", outSwitch);
+    printf("New Car Probability:\t %.1f%%\n", pNewCar*100);
+}
+
+void UseDefaults() {
 	roadLength=100;
 	dt=0.1;
 	nSteps=10;

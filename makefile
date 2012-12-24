@@ -1,4 +1,4 @@
-SOURCES=main.c linkedlist.c
+SOURCES=traffic.c linkedlist.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=traffic
 
