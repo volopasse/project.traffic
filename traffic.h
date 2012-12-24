@@ -10,8 +10,6 @@
 
 #include "linkedlist.h"
 
-//temp declaration for max no of cars. 
-//later will be dynamic
 #define CAR_LENGTH		5
 #define N_BINS			20
 #define SAFE_DIST_CONST	8.4
@@ -22,8 +20,6 @@ typedef struct vehicle{
 	float vDesired;
 	struct vehicle *neighbours[3][3];
 } vehicle;
-
-
 
 //function declarations
 int Integrate();
@@ -36,48 +32,32 @@ void AddCar(vehicle *car);
 
 void CleanUpCars();
 
-//flow statistics
-float AvgSumOfSquares();
 
-//output-related
+//input
 void ReadInputFile();
 int ProcessArgs(int count, char const *args[]);
 void PrintParameters();
 void UseDefaults();
-void Output(int);
-void PrintCar(vehicle *car);
-void PrintAllCars();
+
 
 //movement-related
 void MoveAllCars();
 void Move(float *,float *,float *);
 float SafeDistance(vehicle *car);
 
-//road statistics
-void DensityHist(int nBins, int *hist);
-float EnergyRatio();
-float EnergyAct();
-float EnergyMin();
-
 //helpers
 float RandBetween(int low, int high);
 
 //variable declarations
-int maxID=-1;
 
 //io-related
-char inputFileName[100]="Input.dat";
+extern char inputFileName[100];
 FILE *in;
-FILE *out;
-char logFileName[100]="log.dat";
-FILE *logFile;
-char outSwitch;
-int logEvents=1;
+extern char logFileName[100];
+extern FILE *logFile;
 
-int outHist;
-int outCars;
-int outEnergy;
-int outSS;
+extern int maxID;
+extern int logEvents;
 
 //simulation parameters
 float roadLength;
@@ -88,9 +68,7 @@ float meanVelocity;
 float devVelocity;
 float pNewCar;
 
-int *hist;
-
+//cars list
 List *cars;
-
 
 #endif
