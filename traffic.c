@@ -212,7 +212,7 @@ void MoveAllCars(){
 			else if (vDelta<0) 
 				aActual=car->d;
 			else aActual=0;
-		} else if (frontCar->s - car->s > car->v/SAFE_DIST_RATIO) {
+		} else if (frontCar->s - car->s > SafeDistance(car)) {
 			vDelta = car->vDesired - car->v;
 			if (vDelta>0) 
 				aActual=car->a;
@@ -243,6 +243,10 @@ void Move(float *ps,float *pv,float *pa){
 	//cars not allowed to move backwards
 	*ps=*ps + fmax(*pv * dt + 0.5 * (*pa) * pow(dt,2), 0);
 	*pv=fmax(*pv + *pa * dt ,0);
+}
+
+float SafeDistance(vehicle *car){
+	return pow(car->v,2)/(2*SAFE_DIST_CONST) + car->v * dt;
 }
 
 void CleanUpCars(){

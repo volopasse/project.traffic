@@ -12,9 +12,9 @@
 
 //temp declaration for max no of cars. 
 //later will be dynamic
-#define SAFE_DIST_RATIO	2.7
 #define CAR_LENGTH		5
 #define N_BINS			20
+#define SAFE_DIST_CONST	8.4
 
 typedef struct vehicle{
 	int ID;
@@ -51,6 +51,7 @@ void PrintAllCars();
 //movement-related
 void MoveAllCars();
 void Move(float *,float *,float *);
+float SafeDistance(vehicle *car);
 
 //road statistics
 void DensityHist(int nBins, int *hist);
