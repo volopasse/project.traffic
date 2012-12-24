@@ -125,7 +125,7 @@ void DestroyCar(vehicle *car){
 
 void AddCar(vehicle *car){
 	assert(car!=NULL);
-	listPushFront(cars, car);
+	listPushEnd(cars, car);
 }	
 
 
@@ -189,8 +189,8 @@ void MoveAllCars(){
 	LIST_FOREACH(cars, first, next, cur){
 		car=cur->value;
 
-		if (cur->next!=NULL) {
-			frontCar=cur->next->value;
+		if (cur->prev!=NULL) {
+			frontCar=cur->prev->value;
 		} else {
 			frontCar=NULL;
 		}
@@ -240,7 +240,7 @@ void CleanUpCars(){
 	LIST_FOREACH(cars, first, next, cur){
 		temp=cur->value;
 		if (temp->s > roadLength) {
-			listPopEnd(cars);
+			listPopFront(cars);
 		}
 	}
 }
