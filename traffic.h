@@ -53,11 +53,7 @@ float RandBetween(int low, int high);
 //io-related
 extern char inputFileName[100];
 FILE *in;
-extern char logFileName[100];
-extern FILE *logFile;
 
-extern int maxID;
-extern int logEvents;
 
 //simulation parameters
 float roadLength;

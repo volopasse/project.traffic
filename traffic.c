@@ -12,10 +12,8 @@
 
 char outSwitch;
 int maxID=-1;
-FILE *logFile;
 char inputFileName[100]="Input.dat";
-char logFileName[100]="log.dat";
-int logEvents=1;
+
 
 int main(int argc, char const *argv[])
 {
@@ -25,8 +23,6 @@ int main(int argc, char const *argv[])
 	Initialize();
 	Integrate();
 
-	fclose(logFile);
-	
 	return 0;
 }
 
@@ -60,17 +56,17 @@ int Initialize() {
 		exit(0);
 	}
 
-    logFile=fopen(logFileName,"a");
     time_t now;
     time(&now);
 
-    fprintf(logFile, "Simulation started at %s\n", ctime(&now));
-
-
+    #define BUF 1024
+    char logMsg[BUF];
+    snprintf(logMsg, BUF, "Simulation started at %s\n", ctime(&now));
+    LogEvent(logMsg);
+    
     cars=listCreate();
 
 	return 0;
-
 }
 
 

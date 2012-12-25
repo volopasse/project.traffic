@@ -11,8 +11,14 @@
 extern FILE *out;
 extern char outSwitch;
 
+
+
 FILE *OutputOpen(char outSwitch);
-void Output(int);
+void Output(int loop);
+
+void LogOpen();
+void LogEvent(const char *);
+
 
 void PrintCar(vehicle *car);
 void PrintAllCars();

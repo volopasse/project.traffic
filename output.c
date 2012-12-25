@@ -1,6 +1,8 @@
 #include "output.h"
 
 FILE *out;
+FILE *logFile;
+char logFileName[100]="log.dat";
 
 int *hist;
 
@@ -49,6 +51,16 @@ void Output(int i){
 			fprintf(out, "Loop %i\tEnergy Excess\t%5.2f\n", i, EnergyRatio());
 			break;
 	}
+}
+
+
+void LogOpen(){
+	logFile=fopen(logFileName,"a");
+}
+
+void LogEvent(const char *logMsg){
+	if(logFile==NULL) LogOpen();
+	fprintf(logFile, "%s\n", logMsg);
 }
 
 void PrintCar(vehicle *car){
